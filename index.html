@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arrozitos</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f9f5f0;padding:20px;color:#333;margin:0}
+.box{max-width:400px;margin:0 auto}
+h1{text-align:center;color:#c0392b;font-size:28px;margin-bottom:4px}
+p.sub{text-align:center;color:#999;font-size:12px;text-transform:uppercase;margin-bottom:20px}
+.card{background:white;border-radius:16px;padding:24px;border:1px solid #ede8e0}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:6px}
+.field input,.field select{width:100%;padding:12px;border:1.5px solid #e0d8d0;border-radius:10px;font-size:15px;color:#333;background:white;box-sizing:border-box}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.btn{padding:16px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;color:white;width:100%}
+.verde{background:#27ae60}
+.rojo{background:#c0392b}
+.msg{display:none;text-align:center;margin-top:16px;padding:14px;border-radius:10px;font-weight:600;font-size:14px}
+.ok{background:#eafaf1;color:#1e8449;border:1px solid #a9dfbf}
+.err{background:#fdedec;color:#922b21;border:1px solid #f1948a}
+.footer{text-align:center;margin-top:20px;font-size:12px;color:#bbb}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>Arrozitos</h1>
+<p class="sub">Registro de repartidores</p>
+<div class="card">
+<div class="field">
+<label>Nombre completo</label>
+<input type="text" id="nombre" placeholder="Tu nombre y apellido">
+</div>
+<div class="field">
+<label>Local</label>
+<select id="local">
+<option value="">Selecciona tu local</option>
+<option value="Alcobendas">Alcobendas</option>
+<option value="Pozuelo">Pozuelo</option>
+<option value="Montecarmelo">Montecarmelo</option>
+</select>
+</div>
+<div class="field">
+<label>Tipo de repartidor</label>
+<select id="tipo">
+<option value="">Selecciona tu tipo</option>
+<option value="Contratados">Contratado Arrozitos</option>
+<option value="Autónomos">Autonomo</option>
+<option value="Empresa Externa">Empresa Externa</option>
+</select>
+</div>
+<div class="field" id="kms" style="display:none">
+<label>Kilometros realizados hoy</label>
+<input type="number" id="kilometros" placeholder="Ej: 45" min="0">
+</div>
+<div class="btns">
+<button class="btn verde" onclick="registrar('entrada')">Fichar entrada</button>
+<button class="btn rojo" onclick="registrar('salida')">Fichar salida</button>
+</div>
+</div>
+<div class="msg" id="msg"></div>
+<div class="footer">Arrozitos & Mas - Madrid</div>
+</div>
+<script>
+var URL_BASE="https://script.google.com/macros/s/AKfycbx02IzmBPt8_pm34u4loNoRmWpQHIUG9Ws7eOQbII4AyH7UHabd8TSRhR-xJlEgMsIR/exec";
+
+function registrar(accion){
+var nombre=document.getElementById('nombre').value.trim();
+var local=document.getElementById('local').value;
+var tipo=document.getElementById('tipo').value;
+var kmsDiv=document.getElementById('kms');
+var kms=document.getElementById('kilometros').value||"0";
+var msg=document.getElementById('msg');
+
+if(accion==='salida'){kmsDiv.style.display='block';}
+
+if(!nombre||!local||!tipo){
+msg.className='msg err';
+msg.style.display='block';
+msg.innerHTML='Rellena todos los campos';
+return;
+}
+
+if(accion==='salida'&&!document.getElementById('kilometros').value){
+msg.className='msg err';
+msg.style.display='block';
+msg.innerHTML='Introduce los kilometros de hoy';
+return;
+}
+
+msg.className='msg ok';
+msg.style.display='block';
+msg.innerHTML='Registrando...';
+
+var url=URL_BASE+"?accion="+accion+"&nombre="+encodeURIComponent(nombre)+"&local="+encodeURIComponent(local)+"&tipoRepartidor="+encodeURIComponent(tipo)+"&kms="+encodeURIComponent(kms);
+
+fetch(url,{redirect:'follow'})
+.then(function(r){return r.text();})
+.then(function(t){
+msg.className='msg ok';
+msg.innerHTML=t;
+document.getElementById('nombre').value='';
+document.getElementById('local').value='';
+document.getElementById('tipo').value='';
+document.getElementById('kilometros').value='';
+kmsDiv.style.display='none';
+})
+.catch(function(){
+msg.className='msg err';
+msg.innerHTML='Error de conexion. Intentalo de nuevo.';
+});
+}
+</script>
+</body>
+</html>
