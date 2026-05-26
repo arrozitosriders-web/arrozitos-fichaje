@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+Perfecto, ya tengo el código. El cambio es sencillo: hay que hacer que el formulario lea el local desde la URL y lo fije automáticamente.
+Aquí tienes el HTML actualizado completo:
+html<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -13,6 +15,7 @@ p.sub{text-align:center;color:#999;font-size:12px;text-transform:uppercase;margi
 .field{margin-bottom:16px}
 .field label{display:block;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:6px}
 .field input,.field select{width:100%;padding:12px;border:1.5px solid #e0d8d0;border-radius:10px;font-size:15px;color:#333;background:white;box-sizing:border-box}
+.local-badge{width:100%;padding:12px;border:1.5px solid #f4a623;border-radius:10px;font-size:15px;font-weight:700;color:#c0392b;background:#fff8ee;box-sizing:border-box;text-align:center}
 .btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
 .btn{padding:16px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;color:white;width:100%}
 .verde{background:#27ae60}
@@ -32,15 +35,24 @@ p.sub{text-align:center;color:#999;font-size:12px;text-transform:uppercase;margi
 <label>Nombre completo</label>
 <input type="text" id="nombre" placeholder="Tu nombre y apellido">
 </div>
+
+<!-- Local: fijo si viene por URL, seleccionable si no -->
 <div class="field">
 <label>Local</label>
-<select id="local">
-<option value="">Selecciona tu local</option>
-<option value="Alcobendas">Alcobendas</option>
-<option value="Pozuelo">Pozuelo</option>
-<option value="Montecarmelo">Montecarmelo</option>
-</select>
+<div id="local-fijo" style="display:none">
+  <div class="local-badge" id="local-nombre"></div>
+  <input type="hidden" id="local">
 </div>
+<div id="local-libre" style="display:none">
+  <select id="local-select">
+    <option value="">Selecciona tu local</option>
+    <option value="Alcobendas">Alcobendas</option>
+    <option value="Pozuelo">Pozuelo</option>
+    <option value="Montecarmelo">Montecarmelo</option>
+  </select>
+</div>
+</div>
+
 <div class="field">
 <label>Tipo de repartidor</label>
 <select id="tipo">
@@ -65,9 +77,31 @@ p.sub{text-align:center;color:#999;font-size:12px;text-transform:uppercase;margi
 <script>
 var URL_BASE="https://script.google.com/macros/s/AKfycbx02IzmBPt8_pm34u4loNoRmWpQHIUG9Ws7eOQbII4AyH7UHabd8TSRhR-xJlEgMsIR/exec";
 
+// Leer local desde la URL (?local=Alcobendas)
+var params = new URLSearchParams(window.location.search);
+var localParam = params.get('local');
+var localesValidos = ['Alcobendas', 'Pozuelo', 'Montecarmelo'];
+
+if(localParam && localesValidos.includes(localParam)){
+  // Local fijo desde QR
+  document.getElementById('local-fijo').style.display = 'block';
+  document.getElementById('local-nombre').innerText = '📍 ' + localParam;
+  document.getElementById('local').value = localParam;
+} else {
+  // Sin QR: mostrar selector normal
+  document.getElementById('local-libre').style.display = 'block';
+}
+
+function getLocal(){
+  if(localParam && localesValidos.includes(localParam)){
+    return localParam;
+  }
+  return document.getElementById('local-select').value;
+}
+
 function registrar(accion){
 var nombre=document.getElementById('nombre').value.trim();
-var local=document.getElementById('local').value;
+var local=getLocal();
 var tipo=document.getElementById('tipo').value;
 var kmsDiv=document.getElementById('kms');
 var kms=document.getElementById('kilometros').value||"0";
@@ -101,7 +135,7 @@ fetch(url,{redirect:'follow'})
 msg.className='msg ok';
 msg.innerHTML=t;
 document.getElementById('nombre').value='';
-document.getElementById('local').value='';
+if(!localParam) document.getElementById('local-select').value='';
 document.getElementById('tipo').value='';
 document.getElementById('kilometros').value='';
 kmsDiv.style.display='none';
